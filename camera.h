@@ -1,43 +1,49 @@
 #pragma once
 
+#include "colour.h"
 #include "hittable.h"
+#include "rtweekend.h"
 #include "vec3.h"
 
 class camera {
     public:
         double aspect_ratio = 1.0;
         int image_width = 100;
+        int samples_per_pixel = 10;
 
         void render(const hittable& world) {
             initialize();
 
-            std::cout << "P3\n" << image_width << ' ' << image_height << "\n255\n";
+            cout << "P3\n" << image_width << ' ' << image_height << "\n255\n";
 
             for (int j = 0; j < image_height; j++) {
-                std::clog << "\rScanlines remaining: " << (image_height - j) << ' ' << std::flush;
+                clog << "\rScanlines remaining: " << (image_height - j) << ' ' << flush;
                 for (int i = 0; i < image_width; i++) {
-                    auto pixel_centre = pixel00_loc + (i * pixel_delta_u) + (j * pixel_delta_v);
-                    auto ray_direction = pixel_centre - centre;
-                    ray r(centre, ray_direction);
-
-                    colour pixel_colour = ray_colour(r, world);
-                    write_colour(std::cout, pixel_colour);
+                    colour pixel_colour(0,0,0);
+                    for (int sample = 0; sample < samples_per_pixel; sample++) {
+                        ray r = get_ray(i, j);
+                        pixel_colour += ray_colour(r, world);
+                    }
+                    write_colour(cout, pixel_samples_scale * pixel_colour);
                 }
             }
 
-            std::clog << "\rDone.                       \n";
+            clog << "\rDone.                       \n";
         }
 
     private:
-        int image_height;
+        int image_height; // Come on man...
+        double pixel_samples_scale; // Colour scale factor for a sum of pixel samples
         point3 centre; // It's the centre of the camera
-        point3 pixel00_loc;
-        vec3 pixel_delta_u;
+        point3 pixel00_loc; // Location of pixel at 0,0
+        vec3 pixel_delta_u; // Offset to right pixel
         vec3 pixel_delta_v; // Impulse per unit of mass
 
         void initialize() {
             image_height = int(image_width / aspect_ratio);
             image_height = (image_height < 1) ? 1 : image_height;
+
+            pixel_samples_scale = 1.0 / samples_per_pixel;
 
             centre = point3(0,0,0);
 
@@ -61,8 +67,29 @@ class camera {
 
         }
 
+        ray get_ray(int i, int j) {
+            // Construct a camera ray from the origin directed
+            // at a pseudo randomly selected point around pixel i,j
+
+            auto offset = sample_square();
+            auto pixel_sample = pixel00_loc
+                + ((i + offset.x()) * pixel_delta_u)
+                + ((j + offset.y()) * pixel_delta_v);
+
+            auto ray_origin = centre;
+            auto ray_direction = pixel_sample - ray_origin;
+
+            return ray(ray_origin, ray_direction);
+        }
+
+        vec3 sample_square() const {
+            // Returns a vector to a random point in the unit square
+            return vec3(random_double() - 0.5, random_double() - 0.5, 0);
+        }
+
         colour ray_colour(const ray& r, const hittable& world) {
             hit_record rec;
+
             if(world.hit(r, interval(0, infinity), rec)) {
                 return 0.5 * (rec.normal + colour(1,1,1));
             }
