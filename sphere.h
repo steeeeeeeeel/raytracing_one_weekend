@@ -5,7 +5,7 @@
 
 class sphere : public hittable {
     public:
-        sphere(const point3& centre, double radius) : centre(centre), radius(std::fmax(0,radius)) {}
+        sphere(const point3& centre, double radius) : centre(centre), radius(fmax(0,radius)) {}
 
         bool hit(const ray& r, interval ray_t, hit_record& rec) const override {
             vec3 oc = centre - r.origin();
@@ -16,7 +16,7 @@ class sphere : public hittable {
             auto discriminant = h*h - a*c;
             if(discriminant < 0) return false;
 
-            auto sqrtd = std::sqrt(discriminant);
+            auto sqrtd = sqrt(discriminant);
 
             // Find nearest acceptable root
             auto root = (h - sqrtd) / a;
