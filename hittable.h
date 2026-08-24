@@ -1,5 +1,9 @@
 #pragma once
 
+#include "vec3.h"
+#include "ray.h"
+#include "interval.h"
+
 class hit_record {
     public:
         point3 p;

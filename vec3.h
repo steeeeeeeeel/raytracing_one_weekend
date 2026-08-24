@@ -1,5 +1,8 @@
 #pragma once
 
+#include <iostream>
+#include <cmath>
+
 class vec3 {
     public:
         double e[3];
