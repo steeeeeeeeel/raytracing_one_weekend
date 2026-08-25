@@ -1,6 +1,7 @@
 #include "camera.h"
 #include "colour.h"
 #include "hittable_list.h"
+#include "rtweekend.h"
 #include "sphere.h"
 #include "material.h"
 #include "vec3.h"
@@ -11,30 +12,58 @@ int main() {
     // World
     hittable_list world;
 
-    auto material_ground = make_shared<lambertian>(colour(0.8, 0.8, 0.0));
-    auto material_centre = make_shared<lambertian>(colour(0.1, 0.2, 0.5));
-    auto material_left   = make_shared<dielectric>(1.50);
-    auto material_bubble = make_shared<dielectric>(1.00 / 1.50);
-    auto material_right  = make_shared<metal>(colour(0.8, 0.6, 0.2), 1.0);
-    
-    world.add(make_shared<sphere>(point3( 0.0,-100.5, -1.0), 100, material_ground));
-    world.add(make_shared<sphere>(point3( 0.0,   0.0, -1.2), 0.5, material_centre));
-    world.add(make_shared<sphere>(point3(-1.0,   0.0, -1.0), 0.5, material_left));
-    world.add(make_shared<sphere>(point3(-1.0,   0.0, -1.0), 0.45, material_bubble));
-    world.add(make_shared<sphere>(point3( 1.0,   0.0, -1.0), 0.5, material_right));
+    auto ground_material = make_shared<lambertian>(colour(0.5,0.5,0.5));
+    world.add(make_shared<sphere>(point3(0,-1000, 0), 1000, ground_material));
 
-    // Render
-    camera cam;
+    for (int i = -11; i < 11; i++) {
+        for (int j = -11; j < 11; j++) {
+            auto choose_mat = random_double();
+            point3 centre(i + 0.9*random_double(), 0.2, j + 0.9*random_double());
 
-    cam.aspect_ratio = 16.0 / 9.0;
-    cam.image_width = 400;
-    cam.samples_per_pixel = 100;
-    cam.max_depth = 50;
+            if((centre - point3(4,0.2,0)).length() > 0.9) {
+                shared_ptr<material> sphere_material;
 
-    cam.vfov = 20;
-    cam.lookfrom = point3(-2,2,1);
-    cam.lookat = point3(0,0,-1);
-    cam.vup = vec3(0,1,0);
+                if (choose_mat < 0.8) {
+                    auto albedo = colour::random() * colour::random();
+                    sphere_material = make_shared<lambertian>(albedo);
+                    world.add(make_shared<sphere>(centre, 0.2, sphere_material));
+                } else if (choose_mat < 0.95) {
+                    auto albedo = colour::random();
+                    auto fuzz = random_double(0, 0.5);
+                    sphere_material = make_shared<metal>(albedo, fuzz);
+                    world.add(make_shared<sphere>(centre, 0.2, sphere_material));
+                } else {
+                    sphere_material = make_shared<dielectric>(1.5);
+                    world.add(make_shared<sphere>(centre, 0.2, sphere_material));
+                }
+            }
+        }
+    }
 
-    cam.render(world);
+    auto material1 = make_shared<dielectric>(1.5);
+    world.add(make_shared<sphere>(point3(0,1,0), 1.0, material1));
+
+    auto material2 = make_shared<lambertian>(colour(0.4,0.2,0.1));
+    world.add(make_shared<sphere>(point3(-4,1,0), 1.0, material2));
+
+    auto material3 = make_shared<metal>(colour(0.7, 0.6, 0.5), 0.0);
+    world.add(make_shared<sphere>(point3(4,1,0), 1.0, material3));
+
+// Render
+camera cam;
+
+cam.aspect_ratio = 16.0 / 9.0;
+cam.image_width = 1200;
+cam.samples_per_pixel = 500;
+cam.max_depth = 50;
+
+cam.vfov = 20;
+cam.lookfrom = point3(12,2,3);
+cam.lookat = point3(0,0,0);
+cam.vup = vec3(0,1,0);
+
+cam.defocus_angle = 0.6;
+cam.focus_dist = 10.0;
+
+cam.render(world);
 }
