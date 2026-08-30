@@ -7,11 +7,11 @@
 class sphere : public hittable {
     public:
         // Static
-        sphere(const point3& static_centre, double radius, shared_ptr<material> mat)
+        sphere(const point3& static_centre, double radius, std::shared_ptr<material> mat)
             : centre(static_centre, vec3(0,0,0)), radius(fmax(0,radius)), mat(mat) {}
 
         // Animated
-        sphere(const point3& centre1, const point3& centre2, double radius, shared_ptr<material> mat)
+        sphere(const point3& centre1, const point3& centre2, double radius, std::shared_ptr<material> mat)
             : centre(centre1, centre2 - centre1), radius(fmax(0,radius)), mat(mat) {}
 
         bool hit(const ray& r, interval ray_t, hit_record& rec) const override {
@@ -45,5 +45,5 @@ class sphere : public hittable {
     private:
         ray centre;
         double radius;
-        shared_ptr<material> mat;
+        std::shared_ptr<material> mat;
 };
