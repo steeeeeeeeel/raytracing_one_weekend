@@ -5,6 +5,7 @@
 #include "sphere.h"
 #include "material.h"
 #include "vec3.h"
+#include "bvh.h"
 #include <memory>
 
 int main() {
@@ -50,21 +51,23 @@ int main() {
     auto material3 = std::make_shared<metal>(colour(0.7, 0.6, 0.5), 0.0);
     world.add(std::make_shared<sphere>(point3(4,1,0), 1.0, material3));
 
-// Render
-camera cam;
+    world = hittable_list(std::make_shared<bvh_node>(world));
 
-cam.aspect_ratio = 16.0 / 9.0;
-cam.image_width = 400;
-cam.samples_per_pixel = 100;
-cam.max_depth = 50;
+    // Render
+    camera cam;
 
-cam.vfov = 20;
-cam.lookfrom = point3(12,2,3);
-cam.lookat = point3(0,0,0);
-cam.vup = vec3(0,1,0);
+    cam.aspect_ratio = 16.0 / 9.0;
+    cam.image_width = 400;
+    cam.samples_per_pixel = 100;
+    cam.max_depth = 50;
 
-cam.defocus_angle = 0.6;
-cam.focus_dist = 10.0;
+    cam.vfov = 20;
+    cam.lookfrom = point3(12,2,3);
+    cam.lookat = point3(0,0,0);
+    cam.vup = vec3(0,1,0);
 
-cam.render(world);
+    cam.defocus_angle = 0.6;
+    cam.focus_dist = 10.0;
+
+    cam.render(world);
 }
