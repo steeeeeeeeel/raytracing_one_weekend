@@ -19,7 +19,7 @@ class camera {
         vec3 vup = vec3(0,1,0);
 
         double defocus_angle = 0;
-        double focus_dist = 0;
+        double focus_dist = 10;
 
         void render(const hittable& world) {
             initialize();

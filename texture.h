@@ -4,7 +4,8 @@
 #include "interval.h"
 #include "rtw_stb_image.h"
 #include "vec3.h"
-#include <memory>
+#include "perlin.h"
+
 class texture {
     public:
         virtual ~texture() = default;
@@ -71,4 +72,30 @@ class image_texture : public texture {
         }
     private:
         rtw_image image;
+};
+
+class noise_texture : public texture {
+    public:
+        noise_texture(double scale): scale(scale) {}
+
+        colour value(double u, double v, const point3& p) const override {
+            return colour(1,1,1) * 0.5 * (1.0 + noise.noise(scale * p));
+        }
+
+    private:
+        perlin noise;
+        double scale;
+};
+
+class marble_texture : public texture {
+    public:
+        marble_texture(double scale): scale(scale) {}
+
+        colour value(double u, double v, const point3& p) const override {
+            return colour(0.5,0.5,0.5) * (1 + std::sin(scale * p.z() + 10 * noise.turb(p,7)));
+        }
+
+    private:
+        perlin noise;
+        double scale;
 };
