@@ -1,6 +1,8 @@
 #pragma once
 
 #include "colour.h"
+#include "interval.h"
+#include "rtw_stb_image.h"
 #include "vec3.h"
 #include <memory>
 class texture {
@@ -46,4 +48,27 @@ class checker_texture : public texture {
         double inv_scale;
         std::shared_ptr<texture> even;
         std::shared_ptr<texture> odd;
+};
+
+class image_texture : public texture {
+    public:
+        image_texture(const char* filename) : image(filename) {}
+        
+        colour value(double u, double v, const point3& p) const override {
+            // returns solid cyan if no image data
+            if (image.height() <= 0) return colour(0,1,1);
+
+            // clamp coordinates to range [0,1] * [1,0]
+            u = interval(0,1).clamp(u);
+            v = 1.0 - interval(0,1).clamp(v);
+
+            auto i = int(u * image.width());
+            auto j = int(v * image.height());
+            auto pixel = image.pixel_data(i, j);
+
+            auto colour_scale = 1.0 / 255.0;
+            return colour(colour_scale*pixel[0], colour_scale*pixel[1], colour_scale*pixel[2]);
+        }
+    private:
+        rtw_image image;
 };
